@@ -8,6 +8,7 @@ import VerticalChart from "./components/VerticalChart";
 import Radar from "./components/Radar";
 import ProxmityMap from "./components/ProxmityMap";
 import BoxPlot from "./components/BoxPlot";
+import Voilin from "./components/Voilin";
 
 function App() {
   const [dataState, setData] = useState([]);
@@ -84,6 +85,7 @@ function App() {
       <Circle />
       <ProxmityMap /> */}
       <BoxPlot />
+      <Voilin />
     </div>
   );
 }
