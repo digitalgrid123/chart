@@ -11,3 +11,54 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+
+.apexcharts-datalabels {
+  display: none !important;
+}
+
+.apexcharts-menu-icon,
+.apexcharts-reset-icon,
+.apexcharts-zoom-icon {
+  display: none;
+}
+
+.w-700 {
+  width: 700px;
+}
+
+.css {
+  display: flex;
+  flex-direction: column;
+  /* background: lightblue; */
+  gap: 100px;
+}
+
+
+.chart-container {
+  position: relative;
+}
+
+.custom-legend {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.legend-color {
+  width: 10px;
+
+  height: 10px;
+
+  margin-right: 5px;
+
+}
