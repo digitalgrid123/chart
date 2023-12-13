@@ -9,6 +9,11 @@ import Radar from "./components/Radar";
 import ProxmityMap from "./components/ProxmityMap";
 import BoxPlot from "./components/BoxPlot";
 import Voilin from "./components/Voilin";
+import Table from "./components/Table";
+import DistanceRadar from "./components/DistanceRadar";
+import Joint from "./components/Joint";
+import Correlation from "./components/Correlation";
+import Plot from "./components/Plot";
 
 function App() {
   const [dataState, setData] = useState([]);
@@ -84,8 +89,14 @@ function App() {
       />
       <Circle />
       <ProxmityMap /> */}
-      <BoxPlot />
-      <Voilin />
+      {/* <BoxPlot /> */}
+      {/* <Voilin /> */}
+      {/* <Table /> */}
+      {/* <DistanceRadar />
+       */}
+      {/* <Joint /> */}
+      {/* <Correlation /> */}
+      <Plot />
     </div>
   );
 }
