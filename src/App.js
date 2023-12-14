@@ -14,6 +14,7 @@ import DistanceRadar from "./components/DistanceRadar";
 import Joint from "./components/Joint";
 import Correlation from "./components/Correlation";
 import Plot from "./components/Plot";
+import Heatmap from "./components/Heatmap";
 
 function App() {
   const [dataState, setData] = useState([]);
@@ -92,11 +93,11 @@ function App() {
       {/* <BoxPlot /> */}
       {/* <Voilin /> */}
       {/* <Table /> */}
-      {/* <DistanceRadar />
-       */}
+      {/* <DistanceRadar /> */}
+      <Heatmap />
       {/* <Joint /> */}
       {/* <Correlation /> */}
-      <Plot />
+      {/* <Plot /> */}
     </div>
   );
 }

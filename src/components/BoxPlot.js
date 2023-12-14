@@ -5,7 +5,6 @@ import Chart from "react-apexcharts";
 const BodyMovementComparison = () => {
   const [distance, setDistance] = useState([]);
   const [currentId, setCurrentId] = useState(1);
-  const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,14 +29,14 @@ const BodyMovementComparison = () => {
     fetchData();
   }, []);
 
-  const renderFilteredData = () => {
+  const renderFilteredData = (personId) => {
     if (!distance || distance.length === 0) {
       return <div>Loading...</div>;
     }
 
-    const filteredData = distance.filter((row) => row[17] === currentId);
+    const filteredData = distance.filter((row) => row[17] === personId);
     if (!filteredData || filteredData.length === 0) {
-      return <div>No Person {currentId} exist ID</div>;
+      return <div>No Person {personId} exist ID</div>;
     }
 
     const chartOptions = (title, dataIndex) => {
@@ -83,6 +82,7 @@ const BodyMovementComparison = () => {
         },
       ];
     };
+
     const chartComponents = [
       { title: "Left Ankle", dataIndex: 15 },
       { title: "Right Ankle", dataIndex: 16 },
@@ -105,7 +105,7 @@ const BodyMovementComparison = () => {
 
     return (
       <div className="container">
-        <h2 key={currentId}>Body Movement Comparison - ID {currentId}</h2>
+        <h2 key={personId}>Body Movement Comparison - ID {personId}</h2>
         <div className="row">
           {chartComponents.map((chart, index) => (
             <div className="col-lg-4" key={index}>
@@ -123,9 +123,27 @@ const BodyMovementComparison = () => {
     );
   };
 
+  const renderPersonComponents = () => {
+    if (!distance || distance.length === 0) {
+      return <div>Loading...</div>;
+    }
+
+    // Extract unique person IDs using a Set
+    const uniquePersonIds = new Set(distance.map((row) => row[17]));
+
+    // Convert Set to an array for mapping, and remove index 0
+    const personIdsArray = Array.from(uniquePersonIds).slice(1);
+
+    return personIdsArray.map((personId) => (
+      <div key={personId} style={{ marginBottom: "20px" }}>
+        {renderFilteredData(personId)}
+      </div>
+    ));
+  };
+
   return (
     <div>
-      {renderFilteredData()}
+      {renderPersonComponents()}
       {currentId < distance?.length && (
         <button
           onClick={() => setCurrentId((prevId) => prevId + 1)}

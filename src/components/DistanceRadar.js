@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
-import { Radar } from "react-chartjs-2";
+import Chart from "react-apexcharts";
 
 function DistanceRadar() {
   const [distanceData, setDistanceData] = useState([]);
-  const [currentId, setCurrentId] = useState(1);
   const [confidenceData, setConfidenceData] = useState([]);
 
   useEffect(() => {
@@ -12,7 +11,14 @@ function DistanceRadar() {
       "https://webdev-vsstag-bucket.s3.eu-central-1.amazonaws.com/reports/hpe_1_2_3_1701431919412/chart_data.xlsx";
 
     fetch(excelFileURL)
-      .then((response) => response.arrayBuffer())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch Excel file. Status: ${response.status}`
+          );
+        }
+        return response.arrayBuffer();
+      })
       .then((data) => {
         const workbook = XLSX.read(new Uint8Array(data), { type: "array" });
 
@@ -24,6 +30,7 @@ function DistanceRadar() {
         });
         setDistanceData(distanceSheetData);
 
+        // Read data from the "speed" sheet
         const confidenceSheetName = "speed_radar";
         const confidenceSheet = workbook.Sheets[confidenceSheetName];
         const confidenceSheetData = XLSX.utils.sheet_to_json(confidenceSheet, {
@@ -31,115 +38,126 @@ function DistanceRadar() {
         });
         setConfidenceData(confidenceSheetData);
       })
-      .catch((error) => console.error("Error fetching Excel file:", error));
+      .catch((error) =>
+        console.error("Error fetching or processing Excel file:", error)
+      );
   }, []);
 
   const distanceName = distanceData[0] || [];
   const distance = distanceData.slice(1);
 
-  const filteredData = distance.filter((row) => row[6] === currentId);
-  const slicedFilteredData = filteredData[0]?.slice(0, -1);
-
-  if (!slicedFilteredData || slicedFilteredData.length === 0) {
-    return <div>No Person {currentId} exists with the specified ID</div>;
-  }
-
   const confidenceName = confidenceData[0] || [];
   const confidence = confidenceData.slice(1);
-  const averagefilterData = confidence.filter((row) => row[6] === currentId);
-  const slicedaverageFilteredData = averagefilterData[0]?.slice(0, -1);
 
-  if (!slicedaverageFilteredData || slicedaverageFilteredData.length === 0) {
-    return <div>No Person {currentId} exists with the specified ID</div>;
-  }
+  const personIds = distance.map((row) => row[6]); // Assuming person_id is in the 7th column
 
-  const data = {
-    labels: distanceName.slice(0, -1),
-    datasets: [
-      {
-        label: "Values",
-        data: slicedFilteredData,
-        backgroundColor: "rgba(57, 63, 132, 0.2)",
-        borderColor: "rgba(57, 63, 132, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
-  const average_velocity = {
-    labels: confidenceName.slice(0, -1),
-    datasets: [
-      {
-        label: "Values",
-        data: slicedaverageFilteredData,
-        backgroundColor: "rgba(57, 63, 132, 0.2)",
-        borderColor: "rgba(57, 63, 132, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
+  const renderCharts = () => {
+    return personIds.map((personId, index) => {
+      const filteredDistanceData = distance.filter(
+        (row) => row[6] === personId
+      );
+      const slicedFilteredDistanceData = filteredDistanceData[0]?.slice(0, -1);
 
-  const options = {
-    scales: {
-      r: {
-        min: 0,
-        max: 2500,
-        pointLabels: {
-          font: {
-            size: 15,
+      const filteredConfidenceData = confidence.filter(
+        (row) => row[6] === personId
+      );
+      const slicedFilteredConfidenceData = filteredConfidenceData[0]?.slice(
+        0,
+        -1
+      );
+
+      if (
+        !slicedFilteredDistanceData ||
+        slicedFilteredDistanceData.length === 0 ||
+        !slicedFilteredConfidenceData ||
+        slicedFilteredConfidenceData.length === 0
+      ) {
+        return (
+          <div key={index}>
+            <h2>No data available for Person {personId}</h2>
+          </div>
+        );
+      }
+
+      const labels = distanceName.slice(0, -1);
+
+      const distanceChartData = {
+        labels,
+        series: [
+          {
+            name: `Person ${personId} - Distance`,
+            data: slicedFilteredDistanceData,
+            labels,
+          },
+        ],
+      };
+
+      const confidenceChartData = {
+        labels,
+        series: [
+          {
+            name: `Person ${personId} - Confidence`,
+            data: slicedFilteredConfidenceData,
+            labels,
+          },
+        ],
+      };
+
+      const options = {
+        chart: {
+          type: "radar",
+          toolbar: {
+            show: false,
           },
         },
-        ticks: {
-          stepSize: 500, // Set the step size between ticks
-          beginAtZero: true,
-          maxTicksLimit: 8,
+        yaxis: {
+          min: 0,
+          max: 2500,
+          labels: {
+            style: {
+              fontSize: "15px",
+            },
+          },
+          tickAmount: 8,
         },
         grid: {
           circular: true,
         },
-      },
-    },
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-  };
-  const averageoptions = {
-    scales: {
-      r: {
-        min: 0,
-        max: 500,
-        pointLabels: {
-          font: {
-            size: 15,
+        legend: {
+          show: true,
+        },
+        tooltip: {
+          x: {
+            show: true,
+            formatter: (value) => labels[value],
           },
         },
-        ticks: {
-          stepSize: 100, // Set the step size between ticks
-          beginAtZero: true,
-          maxTicksLimit: 8,
-        },
-        grid: {
-          circular: true,
-        },
-      },
-    },
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
+        colors: ["#008FFB", "#00E396"], // Add custom colors for distance and confidence series
+      };
+
+      return (
+        <div key={index}>
+          <h2>Charts for Person {personId}</h2>
+          <div className="w-700">
+            <Chart
+              options={options}
+              series={distanceChartData.series}
+              type="radar"
+            />
+          </div>
+          <div className="w-700">
+            <Chart
+              options={options}
+              series={confidenceChartData.series}
+              type="radar"
+            />
+          </div>
+        </div>
+      );
+    });
   };
 
-  return (
-    <>
-      <h2>Average Velocity for Instruments with High Means Confidence</h2>
-      <div className="w-700">
-        <Radar data={data} options={options} />
-        <Radar data={average_velocity} options={averageoptions} />
-      </div>
-    </>
-  );
+  return <>{renderCharts()}</>;
 }
 
 export default DistanceRadar;

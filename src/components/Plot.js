@@ -1,161 +1,124 @@
 import React, { useEffect, useState } from "react";
+import HighchartsReact from "highcharts-react-official";
+import Highcharts from "highcharts";
 import * as XLSX from "xlsx";
-import { Line } from "react-chartjs-2";
+
+const getRandomColor = () => {
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+};
+
+const HighchartsComponent = ({ title, data }) => {
+  const chartOptions = {
+    chart: {
+      type: "line",
+    },
+    title: {
+      text: title,
+    },
+    xAxis: {
+      title: {
+        text: "Frame ID",
+      },
+      categories: data.frameId,
+    },
+    yAxis: {
+      title: {
+        text: "Angles",
+      },
+    },
+    series: [
+      {
+        name: title,
+        data: data.speed,
+        color: getRandomColor(),
+      },
+    ],
+  };
+
+  return <HighchartsReact highcharts={Highcharts} options={chartOptions} />;
+};
 
 function Plot() {
   const [distance, setDistance] = useState([]);
-  const [currentId, setCurrentId] = useState(1);
+  const [person, setPerson] = useState(2);
+
   useEffect(() => {
-    const excelFileURL =
-      "https://webdev-vsstag-bucket.s3.eu-central-1.amazonaws.com/reports/hpe_1_2_3_1701431919412/chart_data.xlsx";
+    const fetchData = async () => {
+      const excelFileURL =
+        "https://webdev-vsstag-bucket.s3.eu-central-1.amazonaws.com/reports/hpe_1_2_3_1701431919412/chart_data.xlsx";
 
-    fetch(excelFileURL)
-      .then((response) => response.arrayBuffer())
-      .then((data) => {
+      try {
+        const response = await fetch(excelFileURL);
+        const data = await response.arrayBuffer();
+
         const workbook = XLSX.read(new Uint8Array(data), { type: "array" });
-
         const sheetName = "velocity_line";
         const sheet = workbook.Sheets[sheetName];
-
         const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
         setDistance(sheetData);
-      })
-      .catch((error) => console.error("Error fetching Excel file:", error));
+      } catch (error) {
+        console.error("Error fetching Excel file:", error);
+      }
+    };
+
+    fetchData();
   }, []);
+
   const distanceData = distance.slice(1);
+  const personIds = Array.from({ length: person }, (_, index) => index + 1);
 
-  const filteredData = distanceData.filter((row) => row[0] === currentId);
+  const renderCharts = () => {
+    return personIds.map((personId) => {
+      const filteredData = distanceData.filter((row) => row[0] === personId);
 
-  const frameId = filteredData.map((row) => row[1]);
-  const KP_8_right_elbow_speed = filteredData.map((row) => row[2]);
-  const KP_7_left_elbow_speed = filteredData.map((row) => row[3]);
-  const KP_9_left_wrist_speed = filteredData.map((row) => row[4]);
-  const KP_6_right_shoulder_speed = filteredData.map((row) => row[5]);
-  const KP_10_right_wrist_speed = filteredData.map((row) => row[6]);
-  const KP_5_left_shoulder_speed = filteredData.map((row) => row[7]);
+      if (filteredData.length === 0) {
+        return (
+          <div key={personId}>
+            <h2>No data available for Person {personId}</h2>
+          </div>
+        );
+      }
 
-  const right_elbowData = {
-    labels: frameId,
-    datasets: [
-      {
-        label: "Other",
-        data: KP_8_right_elbow_speed,
-        fill: false,
-        borderColor: "#00be8c",
-      },
-    ],
-  };
-  const left_elbowData = {
-    labels: frameId,
-    datasets: [
-      {
-        label: "Other",
-        data: KP_7_left_elbow_speed,
-        fill: false,
-        borderColor: "#00be8c",
-      },
-    ],
-  };
-  const left_wristData = {
-    labels: frameId,
-    datasets: [
-      {
-        label: "Other",
-        data: KP_9_left_wrist_speed,
-        fill: false,
-        borderColor: "#00be8c",
-      },
-    ],
-  };
-  const right_shoulderData = {
-    labels: frameId,
-    datasets: [
-      {
-        label: "Other",
-        data: KP_6_right_shoulder_speed,
-        fill: false,
-        borderColor: "#00be8c",
-      },
-    ],
-  };
-  const right_wristData = {
-    labels: frameId,
-    datasets: [
-      {
-        label: "Other",
-        data: KP_10_right_wrist_speed,
-        fill: false,
-        borderColor: "#00be8c",
-      },
-    ],
-  };
-  const left_shoulderData = {
-    labels: frameId,
-    datasets: [
-      {
-        label: "Other",
-        data: KP_5_left_shoulder_speed,
-        fill: false,
-        borderColor: "#00be8c",
-      },
-    ],
-  };
-  const options = {
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: "Frame ID",
-          font: {
-            size: 16,
-          },
-        },
-        min: 0,
-        max: 100,
-        ticks: {
-          stepSize: 50, // Set the step size between ticks
-          beginAtZero: true,
-          maxTicksLimit: 4,
-        }, // Set the step size for x-axis ticks
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Angles",
-          font: {
-            size: 16,
-          },
-        },
-        min: 0,
-        max: 180,
-        ticks: {
-          beginAtZero: true,
-          maxTicksLimit: 4,
-        },
-      },
-    },
-    plugins: { legend: { display: false } },
+      const frameId = filteredData.map((row) => row[1]);
+
+      return (
+        <div key={personId}>
+          <HighchartsComponent
+            title="Right Elbow Angle"
+            data={{ frameId, speed: filteredData.map((row) => row[2]) }}
+          />
+          <HighchartsComponent
+            title="Left Elbow Angle"
+            data={{ frameId, speed: filteredData.map((row) => row[3]) }}
+          />
+          <HighchartsComponent
+            title="Left Wrist Angle"
+            data={{ frameId, speed: filteredData.map((row) => row[4]) }}
+          />
+          <HighchartsComponent
+            title="Right Shoulder Angle"
+            data={{ frameId, speed: filteredData.map((row) => row[5]) }}
+          />
+          <HighchartsComponent
+            title="Right Wrist Angle"
+            data={{ frameId, speed: filteredData.map((row) => row[6]) }}
+          />
+          <HighchartsComponent
+            title="Left Shoulder Angle"
+            data={{ frameId, speed: filteredData.map((row) => row[7]) }}
+          />
+        </div>
+      );
+    });
   };
 
-  //   if (!slicedFilteredData || slicedFilteredData.length === 0) {
-  //     return <div>No Person {currentId} exists with the specified ID</div>;
-  //   }
-  return (
-    <div>
-      <Line data={right_elbowData} options={options} />
-      <h1>Left Elbow Angle</h1>
-      <Line data={left_elbowData} options={options} />
-      <h1>Left Wrist Angle</h1>
-      <Line data={left_wristData} options={options} />
-      <h1>Right Shoulder Angle</h1>
-      <Line data={right_shoulderData} options={options} />
-      <h1>Right Wrist Angle</h1>
-      <Line data={right_wristData} options={options} />
-      <h1>Left Shoulder Angle</h1>
-      <Line data={left_shoulderData} options={options} />
-    </div>
-  );
+  return <div>{renderCharts()}</div>;
 }
 
 export default Plot;
