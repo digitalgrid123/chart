@@ -144,14 +144,14 @@ const BodyMovementComparison = () => {
   return (
     <div>
       {renderPersonComponents()}
-      {currentId < distance?.length && (
+      {/* {currentId < distance?.length && (
         <button
           onClick={() => setCurrentId((prevId) => prevId + 1)}
           style={{ position: "absolute", top: "0", left: "50%" }}
         >
           Next ID
         </button>
-      )}
+      )} */}
     </div>
   );
 };

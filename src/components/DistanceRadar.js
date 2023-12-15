@@ -139,6 +139,7 @@ function DistanceRadar() {
         <div key={index}>
           <h2>Charts for Person {personId}</h2>
           <div className="w-700">
+            <h5>Total Distance covered by top six significant body parts</h5>
             <Chart
               options={options}
               series={distanceChartData.series}
@@ -146,6 +147,7 @@ function DistanceRadar() {
             />
           </div>
           <div className="w-700">
+            <h5>Averate Speed of top six signigicant body parts</h5>
             <Chart
               options={options}
               series={confidenceChartData.series}

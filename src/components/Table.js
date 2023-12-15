@@ -3,8 +3,8 @@ import * as XLSX from "xlsx";
 
 const YourComponent = () => {
   const [distanceData, setDistanceData] = useState([]);
-  const [currentId, setCurrentId] = useState(2);
   const [confidenceData, setConfidenceData] = useState([]);
+  const [personIds, setPersonIds] = useState([]);
 
   useEffect(() => {
     const excelFileURL =
@@ -23,66 +23,80 @@ const YourComponent = () => {
         });
         setDistanceData(distanceSheetData);
 
+        // Read data from the "stats_summary" sheet
         const confidenceSheetName = "stats_summary";
         const confidenceSheet = workbook.Sheets[confidenceSheetName];
         const confidenceSheetData = XLSX.utils.sheet_to_json(confidenceSheet, {
           header: 1,
         });
         setConfidenceData(confidenceSheetData);
+
+        // Extract unique person IDs
+        const uniquePersonIds = new Set(
+          confidenceSheetData.slice(1).map((row) => row[9])
+        );
+        setPersonIds(Array.from(uniquePersonIds));
       })
       .catch((error) => console.error("Error fetching Excel file:", error));
   }, []);
-  const distance = distanceData.slice(1);
-  const keys = distance.map(([key]) => key);
-  const values = distance.map(([, value]) => value);
 
-  const confidenceHeaders = confidenceData[0] || [];
-  const confidence = confidenceData.slice(1) || [];
+  const renderTables = () => {
+    return personIds.map((personId) => {
+      const filteredData = confidenceData.filter((row) => row[9] === personId);
 
-  const filteredData = confidenceData.filter((row) => row[9] === currentId);
-  if (!filteredData || filteredData.length === 0) {
-    return <div>No Person {currentId} exist ID</div>;
-  }
+      if (!filteredData || filteredData.length === 0) {
+        return (
+          <div key={personId}>
+            <h2>No data available for Person {personId}</h2>
+          </div>
+        );
+      }
+
+      return (
+        <div key={personId}>
+          <h4>Person {personId}</h4>
+          <table border={1}>
+            <thead>
+              {confidenceData[0]?.map((header, index) => (
+                <th key={index}>{header}</th>
+              ))}
+            </thead>
+            <tbody>
+              {filteredData.map((rowData, rowIndex) => (
+                <tr key={rowIndex} style={{ textAlign: "center" }}>
+                  {rowData.map((cellData, cellIndex) => (
+                    <td key={cellIndex}>{cellData}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    });
+  };
 
   return (
     <>
       <h4>Video Attribute</h4>
-      {distance.length > 0 && (
-        <table border={1}>
-          <thead>
-            {keys?.map((key, index) => {
-              return <th key={index}>{key}</th>;
-            })}
-          </thead>
-          <tbody>
-            {values?.map((value, index) => {
-              return (
-                <td style={{ textAlign: "center" }} key={index}>
-                  {value}
-                </td>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-
-      <h4>Person 1</h4>
       <table border={1}>
         <thead>
-          {confidenceHeaders.map((header, index) => {
-            return <th key={index}>{header}</th>;
-          })}
+          {distanceData[0]?.map((key, index) => (
+            <th key={index}>{key}</th>
+          ))}
         </thead>
         <tbody>
-          {filteredData.map((rowData, rowIndex) => (
-            <tr key={rowIndex} style={{ textAlign: "center" }}>
-              {rowData.map((cellData, cellIndex) => (
-                <td key={cellIndex}>{cellData}</td>
+          {distanceData.slice(1)?.map((row, index) => (
+            <tr key={index} style={{ textAlign: "center" }}>
+              {row.map((value, cellIndex) => (
+                <td key={cellIndex}>{value}</td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
+
+      {renderTables()}
     </>
   );
 };

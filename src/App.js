@@ -15,6 +15,8 @@ import Joint from "./components/Joint";
 import Correlation from "./components/Correlation";
 import Plot from "./components/Plot";
 import Heatmap from "./components/Heatmap";
+import Sign from "./components/Sign";
+import Comparsion from "./components/Comparsion";
 
 function App() {
   const [dataState, setData] = useState([]);
@@ -90,14 +92,16 @@ function App() {
       />
       <Circle />
       <ProxmityMap /> */}
-      {/* <BoxPlot /> */}
       {/* <Voilin /> */}
-      {/* <Table /> */}
-      {/* <DistanceRadar /> */}
-      <Heatmap />
-      {/* <Joint /> */}
       {/* <Correlation /> */}
-      {/* <Plot /> */}
+      <Table />
+      <BoxPlot />
+      <DistanceRadar />
+      <Joint />
+      <Plot />
+      <Sign />
+      <Comparsion />
+      <Heatmap />
     </div>
   );
 }

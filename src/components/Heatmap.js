@@ -64,8 +64,8 @@ const Heatmap = () => {
   }));
 
   // Use labels from the first row for x and y axes
-  const xCategories = distance[0].slice(1).map(String);
-  const yCategories = distance[0].slice(1).map(String);
+  const xCategories = distance[0].map(String);
+  const yCategories = distance[0].map(String);
 
   const options = {
     chart: {

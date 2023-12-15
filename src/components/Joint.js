@@ -45,7 +45,7 @@ const HighchartsComponent = ({ title, data }) => {
 
 function Joint() {
   const [distance, setDistance] = useState([]);
-  const [person, setPerson] = useState(2);
+  const [personIds, setPersonIds] = useState([]);
 
   useEffect(() => {
     const excelFileURL =
@@ -61,6 +61,11 @@ function Joint() {
 
         const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
+        const uniquePersonIds = new Set(
+          sheetData.slice(1).map((row) => row[0])
+        );
+        setPersonIds(Array.from(uniquePersonIds));
+
         setDistance(sheetData);
       })
       .catch((error) => console.error("Error fetching Excel file:", error));
@@ -68,7 +73,6 @@ function Joint() {
 
   const distanceName = distance[0] || [];
   const distanceData = distance.slice(1);
-  const personIds = Array.from({ length: person }, (_, index) => index + 1);
 
   const renderCharts = () => {
     return personIds.map((personId) => {
@@ -87,6 +91,7 @@ function Joint() {
 
       return (
         <div key={personId}>
+          <h1>Joint Angles over Time for Person {personId}</h1>
           <h1>Person ID: {personId}</h1>
           <HighchartsComponent
             title="Left Elbow Angle"

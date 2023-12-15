@@ -45,7 +45,7 @@ const HighchartsComponent = ({ title, data }) => {
 
 function Plot() {
   const [distance, setDistance] = useState([]);
-  const [person, setPerson] = useState(2);
+  const [personIds, setPersonIds] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,6 +61,11 @@ function Plot() {
         const sheet = workbook.Sheets[sheetName];
         const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
+        const uniquePersonIds = new Set(
+          sheetData.slice(1).map((row) => row[0])
+        );
+        setPersonIds(Array.from(uniquePersonIds));
+
         setDistance(sheetData);
       } catch (error) {
         console.error("Error fetching Excel file:", error);
@@ -71,7 +76,6 @@ function Plot() {
   }, []);
 
   const distanceData = distance.slice(1);
-  const personIds = Array.from({ length: person }, (_, index) => index + 1);
 
   const renderCharts = () => {
     return personIds.map((personId) => {
@@ -89,6 +93,9 @@ function Plot() {
 
       return (
         <div key={personId}>
+          <h1>
+            Top Six Significant Bodyparts velocity Plot for Person {personId}
+          </h1>
           <HighchartsComponent
             title="Right Elbow Angle"
             data={{ frameId, speed: filteredData.map((row) => row[2]) }}
